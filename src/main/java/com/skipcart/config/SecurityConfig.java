@@ -29,14 +29,14 @@ public class SecurityConfig {
   @Value("${external.api.url}")
   private String externalApiUrl;
 
-  @Autowired
-  SkipcartAuthenticationProvider authenticationProvider;
+//  @Autowired
+//  SkipcartAuthenticationProvider authenticationProvider;
 
   @Autowired private UserTokenFilter tokenFilter;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    return http.addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
+    return http
         .authorizeHttpRequests(
             auth -> {
               auth.requestMatchers("/home/**", "/api/**")
@@ -44,21 +44,22 @@ public class SecurityConfig {
                   .requestMatchers("/v1api/**")
                   .authenticated();
             })
-        .securityContext(security -> security.requireExplicitSave(false))
+            .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
+//        .securityContext(security -> security.requireExplicitSave(false))
         .csrf(AbstractHttpConfigurer::disable)
         .cors(AbstractHttpConfigurer::disable)
-        .httpBasic(withDefaults())
+//        .httpBasic(withDefaults())
         .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
         .build();
   }
 
-  @Bean
-  public AuthenticationManager authManager(HttpSecurity http) throws Exception {
-    AuthenticationManagerBuilder authenticationManagerBuilder =
-        http.getSharedObject(AuthenticationManagerBuilder.class);
-    authenticationManagerBuilder.authenticationProvider(authenticationProvider);
-    return authenticationManagerBuilder.build();
-  }
+//  @Bean
+//  public AuthenticationManager authManager(HttpSecurity http) throws Exception {
+//    AuthenticationManagerBuilder authenticationManagerBuilder =
+//        http.getSharedObject(AuthenticationManagerBuilder.class);
+//    authenticationManagerBuilder.authenticationProvider(authenticationProvider);
+//    return authenticationManagerBuilder.build();
+//  }
 
 
   @Bean

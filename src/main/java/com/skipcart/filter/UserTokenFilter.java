@@ -20,8 +20,8 @@ public class UserTokenFilter extends OncePerRequestFilter {
   @Value("${app.token}")
   String APP_TOKEN;
 
-  @Autowired
-  private AuthenticationManager authenticationManager;
+//  @Autowired
+//  private AuthenticationManager authenticationManager;
 
   @Override
   protected void doFilterInternal(

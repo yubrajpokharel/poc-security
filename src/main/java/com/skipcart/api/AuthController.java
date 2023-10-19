@@ -31,7 +31,7 @@ public class AuthController {
 
   @Autowired private AuthService authService;
 
-  @Autowired private AuthenticationManager authenticationManager;
+//  @Autowired private AuthenticationManager authenticationManager;
 
   @PostMapping("/login")
   public ResponseEntity<String> login(@RequestBody LoginRequest request) {
