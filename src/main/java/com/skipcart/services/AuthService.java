@@ -38,14 +38,16 @@ public class AuthService{
 
   private final BCryptPasswordEncoder passwordEncoder;
 
-  private final AuthenticationManager authenticationManager;
+//  private final AuthenticationManager authenticationManager;
 
   public AuthService(RestTemplate restTemplate, ObjectMapper mapper,
-      BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+      BCryptPasswordEncoder passwordEncoder
+//                     ,AuthenticationManager authenticationManager
+  ) {
     this.restTemplate = restTemplate;
     this.mapper = mapper;
     this.passwordEncoder = passwordEncoder;
-    this.authenticationManager = authenticationManager;
+//    this.authenticationManager = authenticationManager;
   }
 
   public User authenticate(String username, String password) {
@@ -54,9 +56,9 @@ public class AuthService{
     User user = makePostRequest(loginRequest);
 
     Authentication authenticationToken = new UsernamePasswordAuthenticationToken(username, passwordEncoder.encode(password));
-    Authentication authentication = authenticationManager.authenticate(authenticationToken);
+//    Authentication authentication = authenticationManager.authenticate(authenticationToken);
     SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
+    context.setAuthentication(authenticationToken);
     SecurityContextHolder.setContext(context);
     return user;
 

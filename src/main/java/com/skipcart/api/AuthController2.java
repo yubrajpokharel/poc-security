@@ -25,7 +25,7 @@ public class AuthController2 {
 
   @Autowired private AuthService authService;
 
-  @Autowired private AuthenticationManager authenticationManager;
+//  @Autowired private AuthenticationManager authenticationManager;
 
   @GetMapping("/get")
   @Secured("USER_ROLE")
