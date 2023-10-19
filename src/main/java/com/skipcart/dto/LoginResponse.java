@@ -11,17 +11,22 @@ import lombok.Data;
 public class LoginResponse {
   @JsonProperty("StatusCode")
   private int statusCode;
+
   @JsonProperty("Status")
   private boolean status;
+
   @JsonProperty("Message")
   private String message;
+
   @JsonProperty("JobId")
   private String jobId;
+
   @JsonProperty("KeyMessage")
   private String keyMessage;
 
   @JsonProperty("Result")
   private Result result;
+
   @JsonProperty("Errors")
   private Object errors;
 
@@ -30,8 +35,10 @@ public class LoginResponse {
   public static class Result {
     @JsonProperty("Id")
     private String id;
+
     @JsonProperty("Email")
     private String email;
+
     @JsonProperty("UserToken")
     private String userToken;
 
