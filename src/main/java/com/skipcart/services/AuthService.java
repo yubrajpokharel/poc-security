@@ -5,27 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skipcart.domain.LoginRequest;
 import com.skipcart.dto.LoginResponse;
 import com.skipcart.dto.User;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
 @Slf4j
-public class AuthService{
+public class AuthService {
 
   @Value("${external.api.url}")
   private String coreApiUrl;
@@ -34,34 +25,14 @@ public class AuthService{
   private String appToken;
 
   private final RestTemplate restTemplate;
-  private final ObjectMapper mapper;
 
-  private final BCryptPasswordEncoder passwordEncoder;
-
-//  private final AuthenticationManager authenticationManager;
-
-  public AuthService(RestTemplate restTemplate, ObjectMapper mapper,
-      BCryptPasswordEncoder passwordEncoder
-//                     ,AuthenticationManager authenticationManager
-  ) {
+  public AuthService(RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
-    this.mapper = mapper;
-    this.passwordEncoder = passwordEncoder;
-//    this.authenticationManager = authenticationManager;
   }
 
   public User authenticate(String username, String password) {
-
     LoginRequest loginRequest = new LoginRequest(username, password);
-    User user = makePostRequest(loginRequest);
-
-    Authentication authenticationToken = new UsernamePasswordAuthenticationToken(username, passwordEncoder.encode(password));
-//    Authentication authentication = authenticationManager.authenticate(authenticationToken);
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authenticationToken);
-    SecurityContextHolder.setContext(context);
-    return user;
-
+    return makePostRequest(loginRequest);
   }
 
   public User makePostRequest(LoginRequest request) {
@@ -77,11 +48,11 @@ public class AuthService{
     // Make the POST request
     ResponseEntity<String> responseEntity =
         restTemplate.exchange(coreApiUrl, HttpMethod.POST, requestEntity, String.class);
+    ObjectMapper objMapper = new ObjectMapper();
 
     if (responseEntity.getStatusCode().is2xxSuccessful()) {
       String responseBody = responseEntity.getBody();
       try {
-        ObjectMapper objMapper = new ObjectMapper();
         LoginResponse response = objMapper.readValue(responseBody, LoginResponse.class);
         User user = new User();
         user.setId(response.getResult().getId());
@@ -90,7 +61,6 @@ public class AuthService{
         user.setUserToken(response.getResult().getUserToken());
         user.setUserTokenExpires(response.getResult().getUserTokenExpires());
         return user;
-
       } catch (JsonProcessingException e) {
         throw new RuntimeException(e);
       }
