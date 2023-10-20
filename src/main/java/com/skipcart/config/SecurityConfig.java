@@ -23,13 +23,13 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    return http
-        .authorizeHttpRequests(
-            auth -> auth.requestMatchers("/home/**", "/api/**")
-                .permitAll()
-                .requestMatchers("/v1api/**")
-                .authenticated())
-            .addFilterBefore(userTokenFilter, UsernamePasswordAuthenticationFilter.class)
+    return http.authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/api/**")
+                    .permitAll()
+                    .requestMatchers("/v1api/**")
+                    .authenticated())
+        .addFilterBefore(userTokenFilter, UsernamePasswordAuthenticationFilter.class)
         .csrf(AbstractHttpConfigurer::disable)
         .cors(AbstractHttpConfigurer::disable)
         .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
