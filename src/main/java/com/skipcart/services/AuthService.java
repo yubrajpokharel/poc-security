@@ -5,14 +5,11 @@ import com.skipcart.domain.LoginRequest;
 import com.skipcart.domain.PermissionRequest;
 import com.skipcart.dto.*;
 import com.skipcart.utils.JwtUtil;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -40,7 +37,7 @@ public class AuthService {
   }
 
   public TokenResponse makePostRequest(LoginRequest request) {
-    try{
+    try {
       // Create a HttpHeaders object with the appropriate content type
       HttpHeaders headers = new HttpHeaders();
       headers.set("Content-Type", "application/json");
@@ -51,64 +48,54 @@ public class AuthService {
 
       // Make the POST request
       ResponseEntity<String> responseEntity =
-              restTemplate.exchange(coreApiUrl, HttpMethod.POST, requestEntity, String.class);
+          restTemplate.exchange(coreApiUrl, HttpMethod.POST, requestEntity, String.class);
       ObjectMapper objMapper = new ObjectMapper();
 
       if (responseEntity.getStatusCode().is2xxSuccessful()) {
         String responseBody = responseEntity.getBody();
-          LoginResponse response = objMapper.readValue(responseBody, LoginResponse.class);
-          User user = new User();
-          user.setId(response.getResult().getId());
-          user.setUsername(response.getResult().getFullName());
-          user.setEmail(response.getResult().getEmail());
-          user.setUserToken(response.getResult().getUserToken());
-          user.setUserTokenExpires(response.getResult().getUserTokenExpires());
+        LoginResponse response = objMapper.readValue(responseBody, LoginResponse.class);
+        User user = new User();
+        user.setId(response.getResult().getId());
+        user.setUsername(response.getResult().getFullName());
+        user.setEmail(response.getResult().getEmail());
+        user.setUserToken(response.getResult().getUserToken());
+        user.setUserTokenExpires(response.getResult().getUserTokenExpires());
 
-          var permissionHeaders = new HttpHeaders();
-          permissionHeaders.set("Content-Type", "application/json");
-          permissionHeaders.set("appToken", appToken);
-          permissionHeaders.set("userToken", user.getUserToken());
+        var permissionHeaders = new HttpHeaders();
+        permissionHeaders.set("Content-Type", "application/json");
+        permissionHeaders.set("appToken", appToken);
+        permissionHeaders.set("userToken", user.getUserToken());
 
-          // Create Request Entity
-          var permissionRequest = new PermissionRequest(user.getId(), "login");
-          var permissionRequestEntity = new HttpEntity<>(permissionRequest, permissionHeaders);
+        // Create Request Entity
+        var permissionRequest = new PermissionRequest(user.getId(), "login");
+        var permissionRequestEntity = new HttpEntity<>(permissionRequest, permissionHeaders);
 
-          // Make the POST request
-          var permissionResponseString =
-                  new RestTemplate()
-                          .exchange(
-                                  "https://devapi.skipcart.com/v1api/Permission/UserPermission",
-                                  HttpMethod.POST,
-                                  permissionRequestEntity,
-                                  String.class);
-          if (permissionResponseString.getStatusCode().is2xxSuccessful()) {
-            var responseString = permissionResponseString.getBody();
-            var permissionResponse =
-                    new ObjectMapper().readValue(responseString, PermissionResponse.class);
-            List<GrantedAuthority> authorityList = new ArrayList<>();
-            permissionResponse
-                    .getResult()
-                    .forEach(result -> authorityList.add((GrantedAuthority) result::getPermissionCode));
-//            SkipCartUserDetail authenticationToken =
-//                    new SkipCartUserDetail(authorityList, appToken, user.getUserToken(), user.getId());
-//            SecurityContext context = SecurityContextHolder.createEmptyContext();
-//            Assert.notNull(authenticationToken, "Authentication Token cannot be null");
-//            context.setAuthentication(authenticationToken);
-//            SecurityContextHolder.setContext(context);
-            var scopes =
-                    authorityList.stream()
-                            .map(GrantedAuthority::getAuthority)
-                            .collect(Collectors.joining(","));
-            var jwtToken = jwtUtil.generateToken(user, scopes);
-            return new TokenResponse(jwtToken, "Bearer", "will-be-provided-later");
-          } else {
-            log.error("Unable to fetch permissions in UserPermissionFilter");
-            throw new RuntimeException("Not Authorized");
-          }
+        // Make the POST request
+        var permissionResponseString =
+            new RestTemplate()
+                .exchange(
+                    "https://devapi.skipcart.com/v1api/Permission/UserPermission",
+                    HttpMethod.POST,
+                    permissionRequestEntity,
+                    String.class);
+        if (permissionResponseString.getStatusCode().is2xxSuccessful()) {
+          var responseString = permissionResponseString.getBody();
+          var permissionResponse =
+              new ObjectMapper().readValue(responseString, PermissionResponse.class);
+          var userScope =
+              permissionResponse.getResult().stream()
+                  .map(PermissionResponse.Result::getPermissionCode)
+                  .collect(Collectors.joining(","));
+          var jwtToken = jwtUtil.generateToken(user, userScope);
+          return new TokenResponse(jwtToken, "Bearer", "will-be-provided-later");
+        } else {
+          log.error("Unable to fetch permissions in UserPermissionFilter");
+          throw new RuntimeException("Not Authorized");
+        }
       } else {
         throw new RuntimeException("Not Authorized");
       }
-    } catch(Exception e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }

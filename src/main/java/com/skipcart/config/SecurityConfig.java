@@ -2,10 +2,17 @@ package com.skipcart.config;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
-import com.skipcart.filter.UserTokenFilter;
+import com.skipcart.filter.JwtAuthenticationEntryPoint;
+import com.skipcart.filter.JwtAuthenticationFilter;
+import com.skipcart.providers.JwtAuthenticationProvider;
+import java.util.Collections;
+
+import com.skipcart.providers.JwtAuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,20 +26,37 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-  private final UserTokenFilter userTokenFilter;
+  private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+  private final JwtAuthenticationProvider jwtAuthenticationProvider;
+
+  @Bean
+  public AuthenticationManager authenticationManager() {
+    return new ProviderManager(Collections.singletonList(jwtAuthenticationProvider));
+  }
+
+  @Bean
+  public JwtAuthenticationFilter jwtAuthenticationFilter() {
+    JwtAuthenticationFilter authenticationTokenFilter = new JwtAuthenticationFilter();
+    authenticationTokenFilter.setAuthenticationManager(authenticationManager());
+    authenticationTokenFilter.setAuthenticationSuccessHandler(
+        new JwtAuthenticationSuccessHandler());
+    return authenticationTokenFilter;
+  }
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     return http.authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/api/**")
-                    .permitAll()
-                    .requestMatchers("/v1api/**")
-                    .authenticated())
-        .addFilterBefore(userTokenFilter, UsernamePasswordAuthenticationFilter.class)
+            authOpen ->
+                authOpen.requestMatchers("/api/**").permitAll().anyRequest().authenticated())
         .csrf(AbstractHttpConfigurer::disable)
         .cors(AbstractHttpConfigurer::disable)
+        .exceptionHandling(
+            httpSecurityExceptionHandlingConfigurer ->
+                httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(
+                    jwtAuthenticationEntryPoint))
         .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+        .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
         .build();
   }
 }
