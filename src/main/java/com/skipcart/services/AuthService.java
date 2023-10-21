@@ -32,29 +32,29 @@ public class AuthService {
     if (!appToken.equals(this.appToken)) {
       throw new RuntimeException("Not Authorized: Invalid App Token");
     }
-    LoginRequest loginRequest = new LoginRequest(username, password);
+    var loginRequest = new LoginRequest(username, password);
     return makePostRequest(loginRequest);
   }
 
   public TokenResponse makePostRequest(LoginRequest request) {
     try {
       // Create a HttpHeaders object with the appropriate content type
-      HttpHeaders headers = new HttpHeaders();
+      var headers = new HttpHeaders();
       headers.set("Content-Type", "application/json");
       headers.set("AppToken", appToken);
 
       // Create an HttpEntity with the LoginRequest and headers
-      HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(request, headers);
+      var requestEntity = new HttpEntity<>(request, headers);
 
       // Make the POST request
-      ResponseEntity<String> responseEntity =
+      var responseEntity =
           restTemplate.exchange(coreApiUrl, HttpMethod.POST, requestEntity, String.class);
-      ObjectMapper objMapper = new ObjectMapper();
+      var objMapper = new ObjectMapper();
 
       if (responseEntity.getStatusCode().is2xxSuccessful()) {
-        String responseBody = responseEntity.getBody();
-        LoginResponse response = objMapper.readValue(responseBody, LoginResponse.class);
-        User user = new User();
+        var responseBody = responseEntity.getBody();
+        var response = objMapper.readValue(responseBody, LoginResponse.class);
+        var user = new User();
         user.setId(response.getResult().getId());
         user.setUsername(response.getResult().getFullName());
         user.setEmail(response.getResult().getEmail());

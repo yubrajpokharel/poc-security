@@ -6,10 +6,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Anish Panthi
  */
+@Component
 public class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
   /**
    * @param request - HttpServletRequest

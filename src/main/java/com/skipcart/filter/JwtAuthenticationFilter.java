@@ -25,13 +25,13 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
   @Override
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-    String header = request.getHeader("Authorization");
+    var header = request.getHeader("Authorization");
     if (header == null || !header.startsWith("Bearer ")) {
       throw new JwtTokenMissingException("No JWT token found in request headers");
     }
 
-    String authToken = header.substring(7);
-    JwtAuthenticationToken authRequest = new JwtAuthenticationToken(authToken);
+    var authToken = header.substring(7);
+    var authRequest = new JwtAuthenticationToken(authToken);
     return getAuthenticationManager().authenticate(authRequest);
   }
 

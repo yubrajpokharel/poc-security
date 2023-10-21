@@ -30,6 +30,8 @@ public class SecurityConfig {
 
   private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
+  private final JwtAuthenticationSuccessHandler jwtAuthenticationSuccessHandler;
+
   @Bean
   public AuthenticationManager authenticationManager() {
     return new ProviderManager(Collections.singletonList(jwtAuthenticationProvider));
@@ -37,10 +39,9 @@ public class SecurityConfig {
 
   @Bean
   public JwtAuthenticationFilter jwtAuthenticationFilter() {
-    JwtAuthenticationFilter authenticationTokenFilter = new JwtAuthenticationFilter();
+    var authenticationTokenFilter = new JwtAuthenticationFilter();
     authenticationTokenFilter.setAuthenticationManager(authenticationManager());
-    authenticationTokenFilter.setAuthenticationSuccessHandler(
-        new JwtAuthenticationSuccessHandler());
+    authenticationTokenFilter.setAuthenticationSuccessHandler(jwtAuthenticationSuccessHandler);
     return authenticationTokenFilter;
   }
 
